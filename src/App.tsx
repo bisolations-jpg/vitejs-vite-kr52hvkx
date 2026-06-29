@@ -1129,7 +1129,16 @@ export default function App() {
 
   const showToast=(msg,type="success")=>{ setToast({msg,type}); setTimeout(()=>setToast(null),3500); };
   const isAdmin=me?.role==="admin";
-  const goList=()=>{ setView(isAdmin?"all_rdvs":"my_rdvs"); setSel(null); };
+  const goList=()=>{
+    setView(isAdmin?"all_rdvs":"my_rdvs");
+    setSel(null);
+    // Rafraîchir les leads depuis Supabase
+    db.get("leads","select=*&order=created_at.desc").then(lds=>{
+      const today=todayStr();
+      const actifs=lds.filter(l=>!(l.statut==="Pas intéressé"&&l.suppression_date&&l.suppression_date<=today));
+      setRdvs(actifs.map(toLead));
+    }).catch(()=>{});
+  };
 
   const handleLogin = async u => {
     setMe(u);
@@ -1326,6 +1335,7 @@ export default function App() {
     if(view==="relances"||view==="my_relances") return <MesRelances rdvs={rdvs} users={users} onSelectRdv={r=>{setSel(r);setView("detail");}} isAdmin={isAdmin} meId={me?.id}/>;
     if(view==="pointage_admin") return <AdminPointage users={users} pointages={pointages} onSetSalaire={handleSetSalaire} onSupprimerPointage={handleSupprimerPointage} onModifierPointage={handleModifierPointage}/>;
     // Liste RDV (défaut)
+    if(loading) return <div style={{textAlign:"center",padding:"60px 0"}}><div style={{fontSize:40,marginBottom:16}}>⏳</div><div style={{fontSize:16,color:"#888"}}>Chargement des données…</div></div>;
     return <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,gap:12,flexWrap:"wrap"}}>
         <div><h2 style={{fontSize:22,fontWeight:800,color:"#1C1C1E",margin:0}}>{isAdmin?"Tous les rendez-vous":"Mes rendez-vous"}</h2><p style={{fontSize:13,color:"#888",margin:"4px 0 0"}}>{filtered.length} résultat{filtered.length!==1?"s":""}</p></div>
