@@ -195,7 +195,7 @@ function RelancesPanel({ relances, onChange, readOnly }) {
 // ═══════════════════════════════════════════════════════════════
 function PointageAgent({ me, pointages, onPointer }) {
   const today=todayStr();
-  const p=pointages.find(x=>x.agentId===me.id&&x.date===today);
+  const p=pointages.find(x=>x.agentId===me?.id&&x.date===today);
   const getEtape=()=>{ if(!p) return "pauseDebut"; if(!p.pauseDebut) return "pauseDebut"; if(!p.pauseFin) return "pauseFin"; if(!p.depart) return "depart"; return "done"; };
   const etape=getEtape();
   const duree=p?calcDuree(p):null;
@@ -270,7 +270,7 @@ function PointageAgent({ me, pointages, onPointer }) {
     </Card>
 
     {/* Bouton unique — pause, reprise, départ uniquement */}
-    {etape!=="done"&&etape!=="arrivee"&&<button onClick={()=>onPointer(today,me.id,etape,nowStr())}
+    {etape!=="done"&&etape!=="arrivee"&&<button onClick={()=>onPointer(today,me?.id,etape,nowStr())}
       style={{width:"100%",background:ETAPES.find(e=>e.id===etape)?.color||"#2E7D52",color:"#fff",border:"none",
         borderRadius:10,padding:"16px",fontSize:16,fontWeight:700,cursor:"pointer"}}>
       {ETAPES.find(e=>e.id===etape)?.icon} Pointer — {ETAPES.find(e=>e.id===etape)?.label} ({nowStr()})
@@ -871,7 +871,7 @@ function Dashboard({ rdvs, users, onSelectRdv }) {
 // NAVIGATION — sidebar desktop / top bar + bottom nav mobile
 // ═══════════════════════════════════════════════════════════════
 function Sidebar({ user, view, setView, stats, onLogout, pendingCount }) {
-  const isAdmin=user.role==="admin";
+  const isAdmin=user?.role==="admin";
   const [drawerOpen,setDrawerOpen]=useState(false);
   const [isMobile,setIsMobile]=useState(typeof window!=="undefined"&&window.innerWidth<700);
   useEffect(()=>{
@@ -1150,10 +1150,10 @@ export default function App() {
   const handleLogout=()=>{ setMe(null); setView(""); setSel(null); };
 
   const openEdit=rdv=>{ setForm({...EMPTY_RDV,...rdv}); setEditId(rdv.id); setView("form"); };
-  const addHisto=(rdv,action,detail)=>({...rdv,historique:[...(rdv.historique||[]),{date:todayStr(),userId:me.id,action,detail:detail||""}]});
+  const addHisto=(rdv,action,detail)=>({...rdv,historique:[...(rdv.historique||[]),{date:todayStr(),userId:me?.id,action,detail:detail||""}]});
 
   const saveRdv = async () => {
-    const agentId=isAdmin?form.agentId:me.id;
+    const agentId=isAdmin?form.agentId:me?.id;
     if(!form.raisonSociale||!form.siret||!agentId||!form.dateRdv){showToast("Champs requis : Société, SIRET, Agent, Date","error");return;}
     let rappelDate="", suppressionDate="";
     if(RAPPEL_DELAI[form.statut]) rappelDate=addDays(todayStr(),RAPPEL_DELAI[form.statut]);
@@ -1297,7 +1297,7 @@ export default function App() {
     if(view==="pointer") return <PointageAgent me={me} pointages={pointages} onPointer={handlePointer}/>;
     if(view==="my_rdvs"||view==="all_rdvs") return null; // handled below
     if(view==="detail"&&sel){ const rdv=rdvs.find(r=>r.id===sel.id)||sel;
-      return <RdvDetail rdv={rdv} agentName={gn(rdv.agentId)} canEdit={isAdmin||rdv.agentId===me.id}
+      return <RdvDetail rdv={rdv} agentName={gn(rdv.agentId)} canEdit={isAdmin||rdv.agentId===me?.id}
         isAdmin={isAdmin} users={users} onBack={goList} onEdit={()=>openEdit(rdv)}
         onDelete={isAdmin?deleteRdv:null} onValidate={validateStatut} onDemandeStatut={demandeStatut}/>; }
     if(view==="form") return <div>
@@ -1320,7 +1320,7 @@ export default function App() {
     if(view==="stats"&&isAdmin) return <StatsPanel rdvs={rdvs} users={users}/>;
     if(view==="kanban"||view==="my_kanban") return <div><h2 style={{fontSize:22,fontWeight:800,color:"#1C1C1E",margin:"0 0 20px"}}>{isAdmin?"Pipeline global":"Mon pipeline"}</h2><Kanban rdvs={myRdvs} users={users} onSelect={r=>{setSel(r);setView("detail");}}/></div>;
     if(view==="calendar"||view==="my_calendar") return <div><h2 style={{fontSize:22,fontWeight:800,color:"#1C1C1E",margin:"0 0 20px"}}>Calendrier</h2><Card><CalView rdvs={myRdvs} users={users} onSelect={r=>{setSel(r);setView("detail");}}/></Card></div>;
-    if(view==="relances"||view==="my_relances") return <MesRelances rdvs={rdvs} users={users} onSelectRdv={r=>{setSel(r);setView("detail");}} isAdmin={isAdmin} meId={me.id}/>;
+    if(view==="relances"||view==="my_relances") return <MesRelances rdvs={rdvs} users={users} onSelectRdv={r=>{setSel(r);setView("detail");}} isAdmin={isAdmin} meId={me?.id}/>;
     if(view==="pointage_admin") return <AdminPointage users={users} pointages={pointages} onSetSalaire={handleSetSalaire} onSupprimerPointage={handleSupprimerPointage} onModifierPointage={handleModifierPointage}/>;
     // Liste RDV (défaut)
     return <div>
