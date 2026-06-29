@@ -1363,7 +1363,11 @@ function ImportModalInline({ onClose, onImport, agents, allLeads }) {
 
   const handleFile=async(e)=>{ const file=e.target.files[0]; if(!file) return; setLoading(true); setFileName(file.name);
     try {
-      const {default:XLSX}=await import("xlsx");
+      // Charger xlsx depuis CDN si pas déjà chargé
+      if(!window.XLSX){
+        await new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+      }
+      const XLSX=window.XLSX;
       const buf=await file.arrayBuffer(); const wb=XLSX.read(buf,{type:"array",cellDates:true}); const ws=wb.Sheets[wb.SheetNames[0]]; const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:false});
       if(data.length<2){alert("Fichier vide.");setLoading(false);return;}
       const hdrs=data[0].map(h=>String(h||"").trim()); const dataRows=data.slice(1).filter(r=>r.some(c=>String(c).trim()!==""));
