@@ -1084,8 +1084,8 @@ export default function App() {
   const [rdvs,setRdvs]       = useState([]);
   const [pointages,setPointages] = useState([]);
   const [loading,setLoading] = useState(true);
-  const [me,setMe]           = useState(null);
-  const [view,setView]       = useState("");
+  const [me,setMe]           = useState(()=>{ try{ const s=sessionStorage.getItem("crm_me"); return s?JSON.parse(s):null; }catch{return null;} });
+  const [view,setView]       = useState(()=>{ try{ const s=sessionStorage.getItem("crm_me"); if(s){ const u=JSON.parse(s); return u.role==="admin"?"dashboard":"pointer"; } }catch{} return ""; });
   const [form,setForm]       = useState(EMPTY_RDV);
   const [editId,setEditId]   = useState(null);
   const [sel,setSel]         = useState(null);
@@ -1133,6 +1133,7 @@ export default function App() {
 
   const handleLogin = async u => {
     setMe(u);
+    try{ sessionStorage.setItem("crm_me", JSON.stringify(u)); }catch{}
     setView(u.role==="admin"?"dashboard":"pointer");
     // Pointer arrivée auto à la connexion pour les agents
     if(u.role==="agent"){
@@ -1147,7 +1148,7 @@ export default function App() {
       }
     }
   };
-  const handleLogout=()=>{ setMe(null); setView(""); setSel(null); };
+  const handleLogout=()=>{ setMe(null); setView(""); setSel(null); try{ sessionStorage.removeItem("crm_me"); }catch{} };
 
   const openEdit=rdv=>{ setForm({...EMPTY_RDV,...rdv}); setEditId(rdv.id); setView("form"); };
   const addHisto=(rdv,action,detail)=>({...rdv,historique:[...(rdv.historique||[]),{date:todayStr(),userId:me?.id,action,detail:detail||""}]});
@@ -1175,6 +1176,8 @@ export default function App() {
         setRdvs(r=>[newRdv,...r]);
         try{localStorage.removeItem(DRAFT_KEY);}catch{}
         showToast("RDV créé ✓");
+        // Recharger tous les leads pour s'assurer de la synchro
+        db.get("leads","select=*&order=created_at.desc").then(lds=>{ const today=todayStr(); const actifs=lds.filter(l=>!(l.statut==="Pas intéressé"&&l.suppression_date&&l.suppression_date<=today)); setRdvs(actifs.map(toLead)); }).catch(()=>{});
       }
       setForm(EMPTY_RDV); setEditId(null); goList();
     } catch(e){ showToast("Erreur sauvegarde : "+e.message,"error"); }
