@@ -446,7 +446,7 @@ function AgentDetailAdmin({ agent, pointages, onSupprimer, onModifier }) {
 function RdvForm({ form, setForm, agents, currentUser, onSave, onCancel, isEdit, allRdvs }) {
   const set=(k,v)=>setForm(f=>({...f,[k]:v}));
   const toggle=p=>setForm(f=>({...f,produits:f.produits.includes(p)?f.produits.filter(x=>x!==p):[...f.produits,p]}));
-  const isAdmin=currentUser.role==="admin";
+  const isAdmin=currentUser?.role==="admin";
   const agentOpts=agents.filter(u=>u.role==="agent").map(u=>({v:u.id,l:uname(u)}));
   const dupSiret=form.siret&&form.siret.replace(/\s/g,"").length===14?allRdvs.find(r=>r.id!==form.id&&r.siret.replace(/\s/g,"")=== form.siret.replace(/\s/g,"")):null;
 
@@ -1305,7 +1305,7 @@ export default function App() {
         <button onClick={()=>{setForm(EMPTY_RDV);setEditId(null);goList();}} style={{background:"#fff",border:"1px solid #DDE3DD",borderRadius:8,padding:"8px 14px",fontSize:13,cursor:"pointer",color:"#555"}}>← Retour</button>
         <h2 style={{fontSize:20,fontWeight:800,color:"#1C1C1E",margin:0}}>{editId?"Modifier":"Nouveau"} rendez-vous</h2>
       </div>
-      <RdvForm form={form} setForm={setForm} users={users} isAdmin={isAdmin} me={me} onSave={saveRdv} onCancel={()=>{setForm(EMPTY_RDV);setEditId(null);goList();}} editId={editId} allRdvs={rdvs}/>
+      <RdvForm form={form} setForm={setForm} agents={users} currentUser={me} onSave={saveRdv} onCancel={()=>{setForm(EMPTY_RDV);setEditId(null);goList();}} isEdit={!!editId} allRdvs={rdvs}/>
     </div>;
     if(view==="dashboard"&&isAdmin) return <div>
       <Dashboard rdvs={rdvs} users={users} onSelectRdv={r=>{setSel(r);setView("detail");}}/>
